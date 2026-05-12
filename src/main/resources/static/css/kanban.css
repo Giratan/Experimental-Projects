@@ -1,0 +1,268 @@
+.kanban-board {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 80px);
+}
+
+.day-column {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.day-header {
+    background-color: #e9ecef;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.day-header h5 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.tasks-container {
+    padding: 10px;
+    min-height: 500px;
+}
+
+.task-card {
+    background-color: white;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.task-title {
+    font-weight: 600;
+    color: #212529;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.assigned-user {
+    background-color: #007bff;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+.task-description {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.deadline {
+    color: #ffc107;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+}
+
+/* Color classes for tasks */
+.task-card.active {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.task-card.active .task-title {
+    color: #155724;
+}
+
+.task-card.in-progress {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
+
+.task-card.in-progress .task-title {
+    color: #856404;
+}
+
+.task-card.close-to-deadline {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+.task-card.close-to-deadline .task-title {
+    color: #721c24;
+}
+
+.task-card.overdue {
+    background-color: #d1ecf1;
+    border-color: #17a2b8;
+    color: #0c5460;
+}
+
+.task-card.overdue .task-title {
+    color: #0c5460;
+    font-weight: 700;
+}
+
+.task-card.overdue::before {
+    content: "⚠️";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 1.2rem;
+}
+
+/* Status badges */
+.badge.ACTIVE {
+    background-color: #28a745;
+}
+
+.badge.IN_PROGRESS {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge.COMPLETED {
+    background-color: #6c757d;
+}
+
+/* Modal styles */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    border: none;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Fixed button for adding tasks */
+.fixed-bottom .btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+}
+
+.fixed-bottom .btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,123,255,0.5);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .col {
+        flex: 0 0 14.2857%;
+        max-width: 14.2857%;
+    }
+}
+
+@media (max-width: 992px) {
+    .col {
+        flex: 0 0 28.5714%;
+        max-width: 28.5714%;
+    }
+}
+
+@media (max-width: 768px) {
+    .col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .col {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .day-column {
+        min-height: 400px;
+    }
+}
+
+/* Scrollbar styling */
+.tasks-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tasks-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.tasks-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.tasks-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Loading animation */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

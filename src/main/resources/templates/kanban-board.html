@@ -33,25 +33,27 @@
                             <span class="badge bg-secondary" th:text="${dayTasks != null ? #lists.size(dayTasks) : 0}">0</span>
                         </div>
                         <div class="tasks-container" th:data-day="${day}">
-                            <div th:with="dayTasks=${tasksByDay[day]}" th:each="task : ${dayTasks}" 
-                                 class="task-card" 
+                            <div th:with="dayTasks=${tasksByDay[day]}" th:each="task : ${dayTasks}"
+                                 class="task-card"
                                  th:data-task-id="${task.id}"
                                  th:classappend="${task.getColorClass()}">
                                 <div class="task-header">
                                     <h6 th:text="${task.title}" class="task-title">Название задачи</h6>
-                                    <span th:if="${task.assignedUser}" 
-                                          th:text="${task.assignedUser.login}" 
+                                    <span th:if="${task.assignedUser}"
+                                          th:text="${task.assignedUser.login}"
                                           class="assigned-user"></span>
                                 </div>
-                                <div th:if="${task.description}" 
-                                     th:text="${#strings.abbreviate(task.description, 50)}" 
+                                <div th:if="${task.description}"
+                                     th:text="${#strings.abbreviate(task.description, 50)}"
                                      class="task-description"></div>
                                 <div class="task-footer">
-                                    <small th:if="${task.deadline}" 
-                                           th:text="${#temporals.format(task.deadline, 'HH:mm')}" 
+                                    <small th:if="${task.deadline}"
+                                           th:text="${#temporals.format(task.deadline, 'HH:mm')}"
                                            class="deadline"></small>
-                                    <span th:text="${task.status}" 
-                                          class="badge status-badge"></span>
+                                    <span th:text="${task.status}"
+                                          class="badge status-badge"
+                                          th:data-task-id="${task.id}"
+                                          style="cursor: pointer;"></span>
                                 </div>
                             </div>
                         </div>
@@ -98,6 +100,12 @@
                                     <option th:each="user : ${users}" 
                                             th:value="${user.id}" 
                                             th:text="${user.login}"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskProject" class="form-label">Проект</label>
+                                <select class="form-select" id="taskProject">
+                                    <option value="">Без проекта</option>
                                 </select>
                             </div>
                         </form>

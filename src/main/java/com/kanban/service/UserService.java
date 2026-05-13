@@ -50,6 +50,10 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("User with email " + user.getEmail() + " already exists");
         }
         
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new RuntimeException("Password is required for new user");
+        }
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }

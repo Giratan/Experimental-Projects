@@ -17,9 +17,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.kanban.model.Comment;
+import com.kanban.model.Project;
 import com.kanban.model.Task;
 import com.kanban.model.User;
+import com.kanban.model.UserProfile;
+import com.kanban.service.CommentService;
+import com.kanban.service.ProjectService;
 import com.kanban.service.TaskService;
+import com.kanban.service.UserProfileService;
 import com.kanban.service.UserService;
 
 @Controller
@@ -30,6 +36,15 @@ public class KanbanController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ProjectService projectService;
+    
+    @Autowired
+    private CommentService commentService;
+    
+    @Autowired
+    private UserProfileService userProfileService;
     
     @GetMapping("/")
     public String kanbanBoard(Model model, Principal principal) {
@@ -199,5 +214,210 @@ public class KanbanController {
         model.addAttribute("overdueTasks", taskService.getOverdueTasks());
         
         return "admin-panel";
+    }
+    
+    @GetMapping("/api/users")
+    @ResponseBody
+    public List<User> getAllUsersApi() {
+        return userService.getAllUsers();
+    }
+    
+    @GetMapping("/api/users/{id}")
+    @ResponseBody
+    public ResponseEntity<User> getUserByIdApi(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PostMapping("/api/users")
+    @ResponseBody
+    public ResponseEntity<?> createUserApi(@RequestBody User user) {
+        try {
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.ok(createdUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PutMapping("/api/users/{id}")
+    @ResponseBody
+    public ResponseEntity<User> updateUserApi(@PathVariable Long id, @RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUser(id, user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @DeleteMapping("/api/users/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteUserApi(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Project endpoints
+    @GetMapping("/api/projects")
+    @ResponseBody
+    public List<Project> getAllProjects() {
+        return projectService.getAllProjects();
+    }
+    
+    @GetMapping("/api/projects/{id}")
+    @ResponseBody
+    public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
+        return projectService.getProjectById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PostMapping("/api/projects")
+    @ResponseBody
+    public ResponseEntity<Project> createProject(@RequestBody Project project) {
+        try {
+            Project createdProject = projectService.createProject(project);
+            return ResponseEntity.ok(createdProject);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PutMapping("/api/projects/{id}")
+    @ResponseBody
+    public ResponseEntity<Project> updateProject(@PathVariable Long id, @RequestBody Project project) {
+        try {
+            Project updatedProject = projectService.updateProject(id, project);
+            return ResponseEntity.ok(updatedProject);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @DeleteMapping("/api/projects/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
+        try {
+            projectService.deleteProject(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Comment endpoints
+    @GetMapping("/api/comments")
+    @ResponseBody
+    public List<Comment> getAllComments() {
+        return commentService.getAllComments();
+    }
+    
+    @GetMapping("/api/comments/{id}")
+    @ResponseBody
+    public ResponseEntity<Comment> getCommentById(@PathVariable Long id) {
+        return commentService.getCommentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/api/comments/task/{taskId}")
+    @ResponseBody
+    public List<Comment> getCommentsByTask(@PathVariable Long taskId) {
+        return commentService.getCommentsByTask(taskId);
+    }
+    
+    @PostMapping("/api/comments")
+    @ResponseBody
+    public ResponseEntity<Comment> createComment(@RequestBody Comment comment) {
+        try {
+            Comment createdComment = commentService.createComment(comment);
+            return ResponseEntity.ok(createdComment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PutMapping("/api/comments/{id}")
+    @ResponseBody
+    public ResponseEntity<Comment> updateComment(@PathVariable Long id, @RequestBody Comment comment) {
+        try {
+            Comment updatedComment = commentService.updateComment(id, comment);
+            return ResponseEntity.ok(updatedComment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @DeleteMapping("/api/comments/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        try {
+            commentService.deleteComment(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // UserProfile endpoints
+    @GetMapping("/api/user-profiles")
+    @ResponseBody
+    public java.util.List<UserProfile> getAllUserProfiles() {
+        return userProfileService.getAllUserProfiles();
+    }
+    
+    @GetMapping("/api/user-profiles/{id}")
+    @ResponseBody
+    public ResponseEntity<UserProfile> getUserProfileById(@PathVariable Long id) {
+        return userProfileService.getUserProfileById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/api/user-profiles/user/{userId}")
+    @ResponseBody
+    public ResponseEntity<UserProfile> getUserProfileByUserId(@PathVariable Long userId) {
+        return userProfileService.getUserProfileByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PostMapping("/api/user-profiles")
+    @ResponseBody
+    public ResponseEntity<?> createUserProfile(@RequestBody UserProfile userProfile) {
+        try {
+            UserProfile createdProfile = userProfileService.createUserProfile(userProfile);
+            return ResponseEntity.ok(createdProfile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PutMapping("/api/user-profiles/{id}")
+    @ResponseBody
+    public ResponseEntity<UserProfile> updateUserProfile(@PathVariable Long id, @RequestBody UserProfile userProfile) {
+        try {
+            UserProfile updatedProfile = userProfileService.updateUserProfile(id, userProfile);
+            return ResponseEntity.ok(updatedProfile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @DeleteMapping("/api/user-profiles/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteUserProfile(@PathVariable Long id) {
+        try {
+            userProfileService.deleteUserProfile(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

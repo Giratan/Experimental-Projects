@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kanban.model.Task;
 import com.kanban.model.User;
+import com.kanban.repository.CommentRepository;
 import com.kanban.repository.TaskRepository;
 
 @Service
@@ -21,9 +22,12 @@ public class TaskService {
     
     @Autowired
     private TaskRepository taskRepository;
-    
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CommentRepository commentRepository;
     
     public List<Task> getAllTasks() {
         return taskRepository.findAll();
@@ -99,6 +103,10 @@ public class TaskService {
     public void deleteTask(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        
+        // Delete all comments associated with this task first
+        commentRepository.deleteByTaskId(id);
+        
         taskRepository.delete(task);
     }
     

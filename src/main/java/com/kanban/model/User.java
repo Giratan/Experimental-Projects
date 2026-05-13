@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -32,7 +33,6 @@ public class User {
     @Column(unique = true, nullable = false)
     private String login;
     
-    @NotBlank(message = "Password is required")
     @Size(min = 4, message = "Password must be at least 4 characters")
     @Column(nullable = false)
     private String password;
@@ -53,6 +53,10 @@ public class User {
     @OneToMany(mappedBy = "assignedUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Task> assignedTasks;
+    
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private UserProfile userProfile;
     
     // Constructors
     public User() {}
@@ -86,6 +90,9 @@ public class User {
     
     public List<Task> getAssignedTasks() { return assignedTasks; }
     public void setAssignedTasks(List<Task> assignedTasks) { this.assignedTasks = assignedTasks; }
+    
+    public UserProfile getUserProfile() { return userProfile; }
+    public void setUserProfile(UserProfile userProfile) { this.userProfile = userProfile; }
     
     public enum Role {
         ADMIN, USER

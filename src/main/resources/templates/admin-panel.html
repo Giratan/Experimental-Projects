@@ -90,7 +90,7 @@
 
         <!-- Tasks Management -->
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Задачи</h5>
@@ -98,7 +98,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped" id="tasksTable">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -106,6 +106,7 @@
                                         <th>День недели</th>
                                         <th>Статус</th>
                                         <th>Исполнитель</th>
+                                        <th>Проект</th>
                                         <th>Дедлайн</th>
                                         <th>Действия</th>
                                     </tr>
@@ -116,20 +117,170 @@
                                         <td th:text="${task.title}">Task Title</td>
                                         <td th:text="${task.dayOfWeek}">MONDAY</td>
                                         <td>
-                                            <span class="badge" 
-                                                  th:classappend="${task.status == 'ACTIVE'} ? 'bg-success' : 
+                                            <span class="badge"
+                                                  th:classappend="${task.status == 'ACTIVE'} ? 'bg-success' :
                                                                  (${task.status == 'IN_PROGRESS'} ? 'bg-warning' : 'bg-secondary')"
                                                   th:text="${task.status}">ACTIVE</span>
                                         </td>
                                         <td th:text="${task.assignedUser != null ? task.assignedUser.login : 'Не назначен'}">user</td>
+                                        <td th:text="${task.project != null ? task.project.name : '-'}">-</td>
                                         <td th:text="${task.deadline != null ? #temporals.format(task.deadline, 'dd.MM.yyyy HH:mm') : '-'}">01.01.2024 12:00</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" 
-                                                    th:onclick="'editTask(' + ${task.id} + ')'">Редактировать</button>
-                                            <button class="btn btn-sm btn-danger" 
-                                                    th:onclick="'deleteTask(' + ${task.id} + ')'">Удалить</button>
+                                            <button class="btn btn-sm btn-primary edit-task-btn"
+                                                    th:data-task-id="${task.id}">Редактировать</button>
+                                            <button class="btn btn-sm btn-danger delete-task-btn"
+                                                    th:data-task-id="${task.id}">Удалить</button>
                                         </td>
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Modal -->
+        <div class="modal fade" id="taskModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Задача</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="taskForm">
+                            <input type="hidden" id="taskId">
+                            <div class="mb-3">
+                                <label for="taskTitle" class="form-label">Название</label>
+                                <input type="text" class="form-control" id="taskTitle" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDescription" class="form-label">Описание</label>
+                                <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDay" class="form-label">День недели</label>
+                                <select class="form-select" id="taskDay">
+                                    <option value="MONDAY">Понедельник</option>
+                                    <option value="TUESDAY">Вторник</option>
+                                    <option value="WEDNESDAY">Среда</option>
+                                    <option value="THURSDAY">Четверг</option>
+                                    <option value="FRIDAY">Пятница</option>
+                                    <option value="SATURDAY">Суббота</option>
+                                    <option value="SUNDAY">Воскресенье</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDeadline" class="form-label">Дедлайн</label>
+                                <input type="datetime-local" class="form-control" id="taskDeadline">
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskUser" class="form-label">Исполнитель</label>
+                                <select class="form-select" id="taskUser">
+                                    <option value="">Не назначен</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskProject" class="form-label">Проект</label>
+                                <select class="form-select" id="taskProject">
+                                    <option value="">Без проекта</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary" id="saveTask">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Management -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Проекты</h5>
+                        <button class="btn btn-light btn-sm" onclick="openProjectModal()">Добавить проект</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="projectsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Описание</th>
+                                        <th>Статус</th>
+                                        <th>Владелец</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Projects will be loaded via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Management -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Комментарии</h5>
+                        <button class="btn btn-light btn-sm" onclick="openCommentModal()">Добавить комментарий</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="commentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Текст</th>
+                                        <th>Задача</th>
+                                        <th>Автор</th>
+                                        <th>Дата</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Comments will be loaded via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profiles Management -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Профили пользователей</h5>
+                        <button class="btn btn-light btn-sm" onclick="openUserProfileModal()">Добавить профиль</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="userProfilesTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Пользователь</th>
+                                        <th>Телефон</th>
+                                        <th>Локация</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- User profiles will be loaded via JavaScript -->
                                 </tbody>
                             </table>
                         </div>
@@ -184,9 +335,165 @@
         </div>
     </div>
 
+    <!-- Project Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Проект</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <input type="hidden" id="projectId">
+                        <div class="mb-3">
+                            <label for="projectName" class="form-label">Название</label>
+                            <input type="text" class="form-control" id="projectName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectDescription" class="form-label">Описание</label>
+                            <textarea class="form-control" id="projectDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectStatus" class="form-label">Статус</label>
+                            <select class="form-select" id="projectStatus">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="ARCHIVED">ARCHIVED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectOwner" class="form-label">Владелец</label>
+                            <select class="form-select" id="projectOwner" required>
+                                <option value="">Выберите владельца</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProject()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div class="modal fade" id="commentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Комментарий</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="commentForm">
+                        <input type="hidden" id="commentId">
+                        <div class="mb-3">
+                            <label for="commentText" class="form-label">Текст</label>
+                            <textarea class="form-control" id="commentText" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="commentTask" class="form-label">Задача</label>
+                            <select class="form-select" id="commentTask" required>
+                                <option value="">Выберите задачу</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="commentAuthor" class="form-label">Автор</label>
+                            <select class="form-select" id="commentAuthor" required>
+                                <option value="">Выберите автора</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveComment()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UserProfile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Профиль пользователя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userProfileForm">
+                        <input type="hidden" id="userProfileId">
+                        <div class="mb-3">
+                            <label for="userProfileUser" class="form-label">Пользователь</label>
+                            <select class="form-select" id="userProfileUser" required>
+                                <option value="">Выберите пользователя</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userProfilePhone" class="form-label">Телефон</label>
+                            <input type="text" class="form-control" id="userProfilePhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userProfileBirthDate" class="form-label">Дата рождения</label>
+                            <input type="date" class="form-control" id="userProfileBirthDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userProfileBio" class="form-label">О себе</label>
+                            <textarea class="form-control" id="userProfileBio" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userProfileLocation" class="form-label">Локация</label>
+                            <input type="text" class="form-control" id="userProfileLocation">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUserProfile()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let userModal = new bootstrap.Modal(document.getElementById('userModal'));
+        let projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
+        let commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+        let userProfileModal = new bootstrap.Modal(document.getElementById('userProfileModal'));
+        let taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjects();
+            loadComments();
+            loadUserProfiles();
+
+            // Add event listeners for task edit and delete buttons
+            document.querySelectorAll('.edit-task-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const taskId = this.dataset.taskId;
+                    editTask(taskId);
+                });
+            });
+
+            document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const taskId = this.dataset.taskId;
+                    deleteTask(taskId);
+                });
+            });
+            loadUsersForSelects();
+            loadTasksForSelects();
+
+            // Save task button
+            document.getElementById('saveTask').addEventListener('click', saveTask);
+        });
 
         function openUserModal() {
             clearUserForm();
@@ -226,12 +533,32 @@
 
         function saveUser() {
             const userId = document.getElementById('userId').value;
+            const login = document.getElementById('userLogin').value;
+            const password = document.getElementById('userPassword').value;
+            const fullName = document.getElementById('userFullName').value;
+            const email = document.getElementById('userEmail').value;
+            const role = document.getElementById('userRole').value;
+
+            // Validation
+            if (!login || login.length < 3) {
+                alert('Логин должен содержать минимум 3 символа');
+                return;
+            }
+            if (!userId && (!password || password.length < 4)) {
+                alert('Пароль должен содержать минимум 4 символа');
+                return;
+            }
+            if (!fullName || fullName.trim() === '') {
+                alert('Полное имя обязательно');
+                return;
+            }
+
             const userData = {
-                login: document.getElementById('userLogin').value,
-                password: document.getElementById('userPassword').value,
-                fullName: document.getElementById('userFullName').value,
-                email: document.getElementById('userEmail').value,
-                role: document.getElementById('userRole').value
+                login: login,
+                password: password,
+                fullName: fullName,
+                email: email,
+                role: role
             };
 
             const url = userId ? `/api/users/${userId}` : '/api/users';
@@ -246,12 +573,14 @@
                 if (response.ok) {
                     location.reload();
                 } else {
-                    throw new Error('Failed to save user');
+                    return response.text().then(text => {
+                        throw new Error(text || 'Failed to save user');
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Ошибка при сохранении пользователя');
+                alert('Ошибка при сохранении пользователя: ' + error.message);
             });
         }
 
@@ -274,28 +603,438 @@
         }
 
         function openTaskModal() {
-            window.location.href = '/';
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDay').value = 'MONDAY';
+            document.getElementById('taskDeadline').value = '';
+            document.getElementById('taskUser').value = '';
+            document.getElementById('taskProject').value = '';
+            taskModal.show();
+        }
+
+        function loadTasks() {
+            location.reload();
+        }
+
+        function saveTask() {
+            const taskId = document.getElementById('taskId').value;
+            const taskData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                dayOfWeek: document.getElementById('taskDay').value,
+                deadline: document.getElementById('taskDeadline').value || null,
+                assignedUser: document.getElementById('taskUser').value ? { id: parseInt(document.getElementById('taskUser').value) } : null,
+                project: document.getElementById('taskProject').value ? { id: parseInt(document.getElementById('taskProject').value) } : null
+            };
+
+            const url = taskId ? `/api/tasks/${taskId}` : '/api/tasks';
+            const method = taskId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    taskModal.hide();
+                    loadTasks();
+                } else {
+                    throw new Error('Failed to save task');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении задачи');
+            });
         }
 
         function editTask(taskId) {
-            window.location.href = '/';
+            fetch(`/api/tasks/${taskId}`)
+                .then(response => response.json())
+                .then(task => {
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDescription').value = task.description || '';
+                    document.getElementById('taskDay').value = task.dayOfWeek;
+                    document.getElementById('taskDeadline').value = task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '';
+                    document.getElementById('taskUser').value = task.assignedUser ? task.assignedUser.id : '';
+                    document.getElementById('taskProject').value = task.project ? task.project.id : '';
+                    taskModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при загрузке задачи');
+                });
         }
 
         function deleteTask(taskId) {
             if (!confirm('Вы уверены, что хотите удалить эту задачу?')) return;
+            fetch(`/api/tasks/${taskId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    loadTasks();
+                } else {
+                    throw new Error('Failed to delete task');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении задачи');
+            });
+        }
+
+        // Project functions
+        function loadProjects() {
+            fetch('/api/projects')
+                .then(response => response.json())
+                .then(projects => {
+                    const tbody = document.querySelector('#projectsTable tbody');
+                    tbody.innerHTML = projects.map(project => `
+                        <tr>
+                            <td>${project.id}</td>
+                            <td>${project.name}</td>
+                            <td>${project.description || '-'}</td>
+                            <td><span class="badge ${project.status === 'ACTIVE' ? 'bg-success' : project.status === 'ARCHIVED' ? 'bg-warning' : 'bg-secondary'}">${project.status}</span></td>
+                            <td>${project.owner ? project.owner.login : '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editProject(${project.id})">Редактировать</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProject(${project.id})">Удалить</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error loading projects:', error));
+        }
+
+        function openProjectModal() {
+            clearProjectForm();
+            projectModal.show();
+        }
+
+        function editProject(projectId) {
+            fetch(`/api/projects/${projectId}`)
+                .then(response => response.json())
+                .then(project => {
+                    populateProjectForm(project);
+                    projectModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при загрузке проекта');
+                });
+        }
+
+        function deleteProject(projectId) {
+            if (!confirm('Вы уверены, что хотите удалить этот проект?')) return;
             
-            fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
+            fetch(`/api/projects/${projectId}`, { method: 'DELETE' })
                 .then(response => {
                     if (response.ok) {
-                        location.reload();
+                        loadProjects();
                     } else {
-                        throw new Error('Failed to delete task');
+                        throw new Error('Failed to delete project');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Ошибка при удалении задачи');
+                    alert('Ошибка при удалении проекта');
                 });
+        }
+
+        function saveProject() {
+            const projectId = document.getElementById('projectId').value;
+            const projectData = {
+                name: document.getElementById('projectName').value,
+                description: document.getElementById('projectDescription').value,
+                status: document.getElementById('projectStatus').value,
+                owner: { id: parseInt(document.getElementById('projectOwner').value) }
+            };
+
+            const url = projectId ? `/api/projects/${projectId}` : '/api/projects';
+            const method = projectId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(projectData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    projectModal.hide();
+                    loadProjects();
+                } else {
+                    throw new Error('Failed to save project');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении проекта');
+            });
+        }
+
+        function populateProjectForm(project) {
+            document.getElementById('projectId').value = project.id;
+            document.getElementById('projectName').value = project.name;
+            document.getElementById('projectDescription').value = project.description || '';
+            document.getElementById('projectStatus').value = project.status;
+            document.getElementById('projectOwner').value = project.owner ? project.owner.id : '';
+        }
+
+        function clearProjectForm() {
+            document.getElementById('projectId').value = '';
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDescription').value = '';
+            document.getElementById('projectStatus').value = 'ACTIVE';
+            document.getElementById('projectOwner').value = '';
+        }
+
+        // Comment functions
+        function loadComments() {
+            fetch('/api/comments')
+                .then(response => response.json())
+                .then(comments => {
+                    const tbody = document.querySelector('#commentsTable tbody');
+                    tbody.innerHTML = comments.map(comment => `
+                        <tr>
+                            <td>${comment.id}</td>
+                            <td>${comment.text.substring(0, 50)}${comment.text.length > 50 ? '...' : ''}</td>
+                            <td>${comment.task ? comment.task.title : '-'}</td>
+                            <td>${comment.author ? comment.author.login : '-'}</td>
+                            <td>${new Date(comment.createdAt).toLocaleString('ru-RU')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editComment(${comment.id})">Редактировать</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteComment(${comment.id})">Удалить</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error loading comments:', error));
+        }
+
+        function openCommentModal() {
+            clearCommentForm();
+            commentModal.show();
+        }
+
+        function editComment(commentId) {
+            fetch(`/api/comments/${commentId}`)
+                .then(response => response.json())
+                .then(comment => {
+                    populateCommentForm(comment);
+                    commentModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при загрузке комментария');
+                });
+        }
+
+        function deleteComment(commentId) {
+            if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) return;
+            
+            fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        loadComments();
+                    } else {
+                        throw new Error('Failed to delete comment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при удалении комментария');
+                });
+        }
+
+        function saveComment() {
+            const commentId = document.getElementById('commentId').value;
+            const commentData = {
+                text: document.getElementById('commentText').value,
+                task: { id: parseInt(document.getElementById('commentTask').value) },
+                author: { id: parseInt(document.getElementById('commentAuthor').value) }
+            };
+
+            const url = commentId ? `/api/comments/${commentId}` : '/api/comments';
+            const method = commentId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(commentData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    commentModal.hide();
+                    loadComments();
+                } else {
+                    throw new Error('Failed to save comment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении комментария');
+            });
+        }
+
+        function populateCommentForm(comment) {
+            document.getElementById('commentId').value = comment.id;
+            document.getElementById('commentText').value = comment.text;
+            document.getElementById('commentTask').value = comment.task ? comment.task.id : '';
+            document.getElementById('commentAuthor').value = comment.author ? comment.author.id : '';
+        }
+
+        function clearCommentForm() {
+            document.getElementById('commentId').value = '';
+            document.getElementById('commentText').value = '';
+            document.getElementById('commentTask').value = '';
+            document.getElementById('commentAuthor').value = '';
+        }
+
+        // UserProfile functions
+        function loadUserProfiles() {
+            fetch('/api/user-profiles')
+                .then(response => response.json())
+                .then(profiles => {
+                    const tbody = document.querySelector('#userProfilesTable tbody');
+                    tbody.innerHTML = profiles.map(profile => `
+                        <tr>
+                            <td>${profile.id}</td>
+                            <td>${profile.user ? profile.user.login : '-'}</td>
+                            <td>${profile.phone || '-'}</td>
+                            <td>${profile.location || '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editUserProfile(${profile.id})">Редактировать</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUserProfile(${profile.id})">Удалить</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error loading user profiles:', error));
+        }
+
+        function openUserProfileModal() {
+            clearUserProfileForm();
+            userProfileModal.show();
+        }
+
+        function editUserProfile(profileId) {
+            fetch(`/api/user-profiles/${profileId}`)
+                .then(response => response.json())
+                .then(profile => {
+                    populateUserProfileForm(profile);
+                    userProfileModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при загрузке профиля');
+                });
+        }
+
+        function deleteUserProfile(profileId) {
+            if (!confirm('Вы уверены, что хотите удалить этот профиль?')) return;
+            
+            fetch(`/api/user-profiles/${profileId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        loadUserProfiles();
+                    } else {
+                        throw new Error('Failed to delete user profile');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при удалении профиля');
+                });
+        }
+
+        function saveUserProfile() {
+            const profileId = document.getElementById('userProfileId').value;
+            const profileData = {
+                user: { id: parseInt(document.getElementById('userProfileUser').value) },
+                phone: document.getElementById('userProfilePhone').value,
+                birthDate: document.getElementById('userProfileBirthDate').value || null,
+                bio: document.getElementById('userProfileBio').value,
+                location: document.getElementById('userProfileLocation').value
+            };
+
+            const url = profileId ? `/api/user-profiles/${profileId}` : '/api/user-profiles';
+            const method = profileId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profileData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    userProfileModal.hide();
+                    loadUserProfiles();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Failed to save user profile');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении профиля: ' + error.message);
+            });
+        }
+
+        function populateUserProfileForm(profile) {
+            document.getElementById('userProfileId').value = profile.id;
+            document.getElementById('userProfileUser').value = profile.user ? profile.user.id : '';
+            document.getElementById('userProfilePhone').value = profile.phone || '';
+            document.getElementById('userProfileBirthDate').value = profile.birthDate || '';
+            document.getElementById('userProfileBio').value = profile.bio || '';
+            document.getElementById('userProfileLocation').value = profile.location || '';
+        }
+
+        function clearUserProfileForm() {
+            document.getElementById('userProfileId').value = '';
+            document.getElementById('userProfileUser').value = '';
+            document.getElementById('userProfilePhone').value = '';
+            document.getElementById('userProfileBirthDate').value = '';
+            document.getElementById('userProfileBio').value = '';
+            document.getElementById('userProfileLocation').value = '';
+        }
+
+        // Helper functions to load data for selects
+        function loadUsersForSelects() {
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(users => {
+                    const projectOwnerSelect = document.getElementById('projectOwner');
+                    const commentAuthorSelect = document.getElementById('commentAuthor');
+                    const userProfileUserSelect = document.getElementById('userProfileUser');
+                    
+                    const options = users.map(user => `<option value="${user.id}">${user.login}</option>`).join('');
+                    
+                    projectOwnerSelect.innerHTML = '<option value="">Выберите владельца</option>' + options;
+                    commentAuthorSelect.innerHTML = '<option value="">Выберите автора</option>' + options;
+                    userProfileUserSelect.innerHTML = '<option value="">Выберите пользователя</option>' + options;
+                })
+                .catch(error => console.error('Error loading users for selects:', error));
+        }
+
+        function loadTasksForSelects() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    const tasks = [];
+                    Object.values(data).forEach(dayTasks => {
+                        dayTasks.forEach(task => tasks.push(task));
+                    });
+                    
+                    const commentTaskSelect = document.getElementById('commentTask');
+                    commentTaskSelect.innerHTML = '<option value="">Выберите задачу</option>' + 
+                        tasks.map(task => `<option value="${task.id}">${task.title}</option>`).join('');
+                })
+                .catch(error => console.error('Error loading tasks for selects:', error));
         }
     </script>
 </body>

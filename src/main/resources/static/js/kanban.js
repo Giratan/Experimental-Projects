@@ -4,26 +4,39 @@ let taskModal = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Kanban board initialized');
     taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
-    
+
     // Add click handlers to task cards
     document.querySelectorAll('.task-card').forEach(card => {
         card.addEventListener('click', function() {
             handleTaskClick(this);
         });
     });
-    
+
+    // Add click handlers to status badges
+    document.querySelectorAll('.status-badge').forEach(badge => {
+        badge.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const taskId = this.dataset.taskId;
+            toggleTaskStatus(taskId);
+        });
+    });
+
     // Save task button
     document.getElementById('saveTask').addEventListener('click', saveTask);
-    
+
     // Complete task button
     document.getElementById('completeTask').addEventListener('click', completeTask);
-    
+
     // Delete task button
     document.getElementById('deleteTask').addEventListener('click', deleteTask);
-    
+
     // Check current tasks on page
     console.log('Tasks on page:', document.querySelectorAll('.task-card').length);
-    
+
+    // Load projects for selector
+    loadProjects();
+
     // Refresh immediately, then every 30 seconds
     refreshBoard();
     setInterval(refreshBoard, 30000);
@@ -31,15 +44,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function handleTaskClick(taskElement) {
     const taskId = taskElement.dataset.taskId;
-    const isTaskInProgress = taskElement.classList.contains('in-progress');
-    
-    if (isTaskInProgress) {
-        // If task is in progress, show modal with complete button
-        openTaskModal(taskId);
-    } else {
-        // Toggle task status (ACTIVE <-> IN_PROGRESS)
-        toggleTaskStatus(taskId);
-    }
+    // Always open modal for editing
+    openTaskModal(taskId);
+}
+
+function editTask(taskId) {
+    openTaskModal(taskId);
 }
 
 function toggleTaskStatus(taskId) {
@@ -98,6 +108,10 @@ function populateTaskForm(task) {
     if (task.assignedUser) {
         document.getElementById('taskUser').value = task.assignedUser.id;
     }
+    
+    if (task.project) {
+        document.getElementById('taskProject').value = task.project.id;
+    }
 }
 
 function clearTaskForm() {
@@ -107,6 +121,7 @@ function clearTaskForm() {
     document.getElementById('taskDay').value = 'MONDAY';
     document.getElementById('taskDeadline').value = '';
     document.getElementById('taskUser').value = '';
+    document.getElementById('taskProject').value = '';
 }
 
 function showTaskModal(showCompleteButton) {
@@ -125,7 +140,8 @@ function saveTask() {
         description: document.getElementById('taskDescription').value,
         dayOfWeek: document.getElementById('taskDay').value,
         deadline: document.getElementById('taskDeadline').value ? new Date(document.getElementById('taskDeadline').value) : null,
-        assignedUser: document.getElementById('taskUser').value ? { id: parseInt(document.getElementById('taskUser').value) } : null
+        assignedUser: document.getElementById('taskUser').value ? { id: parseInt(document.getElementById('taskUser').value) } : null,
+        project: document.getElementById('taskProject').value ? { id: parseInt(document.getElementById('taskProject').value) } : null
     };
     
     const taskId = document.getElementById('taskId').value;
@@ -285,7 +301,7 @@ function createTaskCardElement(task) {
     const div = document.createElement('div');
     div.className = 'task-card ' + task.colorClass;
     div.dataset.taskId = task.id;
-    
+
     div.innerHTML = `
         <div class="task-header">
             <h6 class="task-title">${task.title}</h6>
@@ -294,14 +310,24 @@ function createTaskCardElement(task) {
         ${task.description ? `<div class="task-description">${task.description.substring(0, 50)}${task.description.length > 50 ? '...' : ''}</div>` : ''}
         <div class="task-footer">
             ${task.deadline ? `<small class="deadline">${new Date(task.deadline).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</small>` : ''}
-            <span class="badge status-badge ${task.status}">${task.status}</span>
+            <span class="badge status-badge ${task.status}" data-task-id="${task.id}" style="cursor: pointer;">${task.status}</span>
         </div>
     `;
-    
+
     div.addEventListener('click', function() {
         handleTaskClick(this);
     });
-    
+
+    // Add click handler to status badge
+    const statusBadge = div.querySelector('.status-badge');
+    if (statusBadge) {
+        statusBadge.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleTaskStatus(task.id);
+        });
+    }
+
     return div;
 }
 
@@ -344,8 +370,22 @@ function refreshBoard() {
 function formatDate(dateString) {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+    return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
     });
+}
+
+// Load projects for selector
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            const projectSelect = document.getElementById('taskProject');
+            projectSelect.innerHTML = '<option value="">Без проекта</option>' +
+                projects.map(project => `<option value="${project.id}">${project.name}</option>`).join('');
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+        });
 }
